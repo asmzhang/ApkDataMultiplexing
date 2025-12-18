@@ -218,6 +218,7 @@ public class ZipMaker implements Closeable {
             ZipEntry innerEntry = zipFile.getEntryNonNull(name);
             CenterFileHeader header = new CenterFileHeader(innerEntry);
             setupNeedZip64(header);
+            header.generalPurposeFlag = innerEntry.getGeneralPurposeFlag();
             header.headerOffset = innerEntry.getHeaderOffset() + hostHeader.dataOffset;
             header.dataOffset = innerEntry.getDataOffset() + hostHeader.dataOffset;
             headers.add(header);
