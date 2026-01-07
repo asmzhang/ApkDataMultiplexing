@@ -13,9 +13,18 @@ import java.util.*;
 public class DataMultiplexing {
 
     public static void main(String[] args) throws Exception {
-        File input = new File("test.apk");
         File output = new File("output.apk");
-        optimize(input, output, "assets/base.apk", true);
+
+//        File input = new File("test.apk");
+//        optimize(input, output, "assets/base.apk", true);
+
+//        File input = new File("app-debug-2-stored.apk");
+//        optimize(input, output, "assets/SignatureKiller/origin.apk", true);
+
+//        File input = new File("app-debug-2.apk");
+//        optimize(input, output, "assets/origin817.apk", true);
+
+
         V2V3SchemeSigner.sign(output, new JksSignatureKey("test.jks", "123456", "123456", "123456"), true, true);
         System.out.println("Check " + isZipFileContentEquals(input, output));
     }
@@ -138,8 +147,8 @@ public class DataMultiplexing {
                         continue;
                     }
                     if (name.endsWith(".so") && innerEntry.getDataOffset() % 4096 != 0) {
-                        continue;
-                    }
+                    continue;
+                }
                 }
                 boolean equals = outerEntry.getCompressedSize() == innerEntry.getCompressedSize() &&
                         isInputStreamContentEquals(inner.getRawInputStream(innerEntry), outer.getRawInputStream(outerEntry)) ||
@@ -151,6 +160,103 @@ public class DataMultiplexing {
             return children.isEmpty() ? null : inner;
         }
     }
+
+    
+//    private static ZipFile collectChildren(ZipFile outer, ZipEntry hostEntry, Set<String> children) throws IOException {
+//        try (ZipFile inner = openEntryAsZipFile(outer, hostEntry)) {
+//            System.out.println("Comparing outer APK entries with inner APK entries:");
+//            System.out.println("==================================================");
+//
+//            for (ZipEntry outerEntry : outer.getEntries()) {
+//                if (outerEntry == hostEntry || outerEntry.isDirectory()) {
+//                    continue;
+//                }
+//
+//                System.out.println("Processing entry: " + outerEntry.getName());
+//                ZipEntry innerEntry = inner.getEntry(outerEntry.getName());
+//                if (innerEntry == null) {
+//                    System.out.println("  Entry not found in inner APK");
+//                    continue;
+//                }
+//
+//                // 检查基本属性
+//                boolean methodMatch = (outerEntry.getMethod() == innerEntry.getMethod());
+//                boolean crcMatch = (outerEntry.getCrc() == innerEntry.getCrc());
+//                boolean sizeMatch = (outerEntry.getSize() == innerEntry.getSize());
+//                boolean compressedSizeMatch = (outerEntry.getCompressedSize() == innerEntry.getCompressedSize());
+//                boolean commentMatch = Arrays.equals(outerEntry.getCommentData(), innerEntry.getCommentData());
+//
+//                System.out.printf("  Method: outer=%d, inner=%d -> %s\n", outerEntry.getMethod(), innerEntry.getMethod(), methodMatch ? "MATCH" : "MISMATCH");
+//                System.out.printf("  CRC: outer=0x%08x, inner=0x%08x -> %s\n", outerEntry.getCrc(), innerEntry.getCrc(), crcMatch ? "MATCH" : "MISMATCH");
+//                System.out.printf("  Size: outer=%d, inner=%d -> %s\n", outerEntry.getSize(), innerEntry.getSize(), sizeMatch ? "MATCH" : "MISMATCH");
+//                System.out.printf("  Compressed Size: outer=%d, inner=%d -> %s\n", outerEntry.getCompressedSize(), innerEntry.getCompressedSize(), compressedSizeMatch ? "MATCH" : "MISMATCH");
+//                System.out.printf("  Comment: %s\n", commentMatch ? "MATCH" : "MISMATCH");
+//
+//                if (!methodMatch) {
+//                    System.out.println("  Skipping: compression method mismatch");
+//                    continue;
+//                }
+//                if (!crcMatch) {
+//                    System.out.println("  Skipping: CRC mismatch");
+//                    continue;
+//                }
+//                if (!sizeMatch) {
+//                    System.out.println("  Skipping: size mismatch");
+//                    continue;
+//                }
+//                if (!commentMatch) {
+//                    System.out.println("  Skipping: comment mismatch");
+//                    continue;
+//                }
+//
+//                // 检查4k对齐要求
+//                boolean alignmentOk = true;
+//                if (innerEntry.getMethod() == ZipMaker.METHOD_STORED) {
+//                    String name = innerEntry.getName();
+//                    if (name.equals("resources.arsc") && innerEntry.getDataOffset() % 4 != 0) {
+//                        System.out.println("  Skipping: resources.arsc not 4-byte aligned");
+//                        alignmentOk = false;
+//                    } else if (name.endsWith(".so") && innerEntry.getDataOffset() % 4096 != 0) {
+//                        System.out.println("  Skipping: .so file not 4096-byte aligned");
+//                        alignmentOk = false;
+//                    }
+//                }
+//
+//                if (!alignmentOk) {
+//                    continue;
+//                }
+//
+//                // 检查内容是否相同
+//                boolean contentSame = false;
+//                if (compressedSizeMatch) {
+//                    System.out.println("  Checking compressed content...");
+//                    contentSame = isInputStreamContentEquals(inner.getRawInputStream(innerEntry), outer.getRawInputStream(outerEntry));
+//                    System.out.println("  Compressed content same: " + contentSame);
+//                }
+//
+//                if (!contentSame) {
+//                    System.out.println("  Checking decompressed content...");
+//                    contentSame = isInputStreamContentEquals(inner.getInputStream(innerEntry), outer.getInputStream(outerEntry));
+//                    System.out.println("  Decompressed content same: " + contentSame);
+//                }
+//
+//                if (contentSame) {
+//                    children.add(innerEntry.getName());
+//                    System.out.println("  ** Entry added to children **");
+//                } else {
+//                    System.out.println("  Skipping: content not same");
+//                }
+//                System.out.println();
+//            }
+//
+//            System.out.println("Final children list:");
+//            for (String name : children) {
+//                System.out.println("  " + name);
+//            }
+//
+//            return children.isEmpty() ? null : inner;
+//        }
+//    }
 
     private static ZipFile openEntryAsZipFile(ZipFile zipFile, ZipEntry hostEntry) throws IOException {
         if (hostEntry.getMethod() == ZipMaker.METHOD_STORED) {
